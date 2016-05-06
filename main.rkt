@@ -22,9 +22,9 @@
                   (2 "a gold coin")))
 
 ;; Rooms description
-(define descriptions '((1 "You are in the lobby")
-                       (2 "You are in the hallway")
-                       (3 "You are in a swamp")))
+(define descriptions '((1 "You are in the lobby.")
+                       (2 "You are in the hallway.")
+                       (3 "You are in a swamp.")))
 
 ;; Initializes the object database
 (define objectdb (make-hash))
@@ -32,15 +32,16 @@
 ;; Initializes the inventory database
 (define inventorydb (make-hash))
 
-;; Lists of pairs. First we have the use entry and second we have what our software should understand with that entry.
+;; Lists of pairs. First we have the user's entry and second we have what our software should understand with that entry
 (define look '(((directions) look) ((look) look) ((examine room) look)))
-(define quit '(((exit game) quit) ((quit game) quit) ((exit) quit) ((quit) quit)))
 (define pick '(((get) pick) ((pickup) pick) ((pick) pick)))
 (define drop '(((put) drop) ((drop) drop) ((place) drop) ((remove) drop)))
 (define inventory '(((inventory) inventory) ((bag) inventory)))
+(define help '(((help) help)))
+(define quit '(((exit game) quit) ((quit game) quit) ((exit) quit) ((quit) quit)))
 
 ;; Lists using unquote-splicing to dynamically reference all the other lists
-(define actions `(,@look ,@quit ,@pick ,@drop ,@inventory))
+(define actions `(,@look ,@pick ,@drop ,@inventory ,@help ,@quit))
 (define decisiontable `((1 ((north) 2) ((north west) 3) ,@actions)
                         (2 ((south) 1) ,@actions)
                         (3 ,@actions)))
@@ -52,6 +53,7 @@
 ;; The usage of our previous defined function gives us a way to retrieve our location name by passing the room id. We also show the objects on the ground for the current room
 (define (get-location id)
   (printf "~a\n" (car (assq-ref descriptions id)))
+  ;; Describe objects that are present in the room
   (display-objects objectdb id)
   (printf "> "))
 
@@ -120,6 +122,8 @@
 
 ;; Retrieve that directions you see from the room you are
 (define (get-directions id)
+  ;; Describe objects that are present in the room
+  (display-objects objectdb id)
   ;; In list decisiontable, finds the pair that has car equals to id and assign it to record
   (let ((record (assq id decisiontable)))
     ;; record goes through a filter and if the second value of it is a number(this is a room), it is assigned to result. Also gets the length of n(rooms you can go to)
@@ -194,6 +198,21 @@
 (define (display-inventory)
   (display-objects inventorydb 'bag))
 
+;; Print the Help text on the screen
+(define (display-help)
+  (printf "\nHELP\n
+          This is the help file for Racket MUD.\n\n 
+          GAME OBJECTIVE\n
+          The game objective is to activate the nether portal to escape the maze. To be able to open the portal, you must have collected every item in the maze and have them all in your bag.\n\n
+          VALID COMMANDS\n
+          - (look | directions | examine room): Retrieve information about the current room.\n
+          - (pick | get | pickup) <item-name> : Your character pick up the item correspondent to <item-name>. If no <item-name> is supplied, it picks up the first item on the rooms list.\n
+          - (drop | put | place | remove) <item-name> : Your character throws the item correspondent to <item-name> in your bag on the ground. If no <item-name> is supplied, it drops the first item on your inventory. \n
+          - (inventory | bag) : Shows a list composed by the items present in your inventory at the time.\n
+          - (help) : Shows the help file for Racket MUD.\n
+          - (quit | exit | quit game | exit game) : Quit the application.\n
+          "))
+
 ;; Adds a given object to a database(inventory or object dbs)
 (define (add-object db id object)
   ;; Returns true if id is stored in the database and false otherwise
@@ -243,25 +262,30 @@
                ;; Retrieve possible directions
                (get-directions id)
                (loop id #f))
-              ;; Response action is pick item
+              ;; Response action is to pick an item
               ((eq? response 'pick)
-               ;; Pickup item
+               ;; Pick up item
                (pick-item id input)
                (loop id #f))
-              ;; Response action is drop item
+              ;; Response action is to drop an item
               ((eq? response 'drop)
                ;; Drop item
                (drop-item id input)
                (loop id #f))
-              ;; Response action is show inventory
+              ;; Response action is to show inventory
               ((eq? response 'inventory)
                ;; Displays the inventory
                (display-inventory)
                (loop id #f))
+              ;; Response action is to display the help file
+              ((eq? response 'help)
+                ;; Displays Help text on the screen
+                (display-help)
+                (loop id #f))
               ;; Exit game command
               ((eq? response 'quit)
                ;; Exit the application
-               (format #t "So Long, and Thanks for All the Fish...\n")
+               (format #t "Hasta la vista, baby\n")
                (exit)))))))
 
 ;; Adds the objects to the database before the game starts
@@ -271,11 +295,10 @@
 (startgame 1)
 
 ;;  DID:
-;;  Removed useless code
-;;  Main loop comments
-;;  Code formating(change comment style and regroup code according to when it is used[this makes bug fixing easier])
+;;  Look now displays the items in the room
 
 ;;  TODO:
+;;  Main menu(Play, Help, Quit)
 ;;  Make help command
 ;;  Add empty inventory/room message
 ;;  Input error handling
