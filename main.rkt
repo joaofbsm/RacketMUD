@@ -18,13 +18,17 @@
 #|-------------------|#
 
 ;; Objects description
-(define objects '((1 "a silver dagger")
-                  (2 "a gold coin")))
+(define objects '((1 "a steel sword")
+                  (2 "an empty cup")
+                  (3 "a holy cross")
+                  (5 "an interdimensional communicator")))
 
 ;; Rooms description
-(define descriptions '((1 "You are in the lobby.")
-                       (2 "You are in the hallway.")
-                       (3 "You are in a swamp.")))
+(define descriptions '((1 "You are in the ancient ruins entrance.")
+                       (2 "You are in the old great hall.")
+                       (3 "You are in a chapel.")
+                       (4 "You are in a graveyard.")
+                       (5 "You are in a mystic room.")))
 
 ;; Initializes the object database
 (define objectdb (make-hash))
@@ -42,9 +46,11 @@
 
 ;; Lists using unquote-splicing to dynamically reference all the other lists
 (define actions `(,@look ,@pick ,@drop ,@inventory ,@help ,@quit))
-(define decisiontable `((1 ((north) 2) ((north west) 3) ,@actions)
-                        (2 ((south) 1) ,@actions)
-                        (3 ,@actions)))
+(define decisiontable `((1 ((north) 2) ,@actions)
+                        (2 ((south) 1) ((north east) 3) ((north west) 2) ,@actions)
+                        (3 ((west) 4) ((south west) 2) ((north east) 5) ,@actions)
+                        (4 ((south east) 2) ((east) 3) ,@actions)
+                        (5 ((south west) 3) ,@actions)))
 
 #|-------------------|#
 #|     Functions     |#
@@ -69,12 +75,11 @@
     (let* ((record (hash-ref db id))
             ;; Formats the output(list of items in the room)
             (output (string-join record " and ")))
-      ;; When output is not an empty String
-      (when (not (equal? output ""))
-        ;; If user requested to see the inventory
-        (if (eq? id 'bag)
-          (printf "You are carrying ~a.\n" output)
-          (printf "You can see ~a.\n" output ))))))
+      (cond
+        ((and (equal? output "") (eq? id 'bag)) (printf "Your inventory is empty.\n"))
+        ((and (equal? output "") (number? id)) (printf "The room is empty.\n"))
+        ((and (not (equal? output "")) (eq? id 'bag)) (printf "You are carrying ~a.\n" output))
+        (else (printf "You see ~a.\n" output))))))
 
 ;; Receives the id(current room number) and a list of symbols that represents the user input(tokens)
 (define (lookup id tokens)
@@ -120,7 +125,7 @@
       ;; Returns the index of the entry with the greatest weight, so it can be matched with the list of keywords later
       (list-index (lambda (x) (eq? x n)) list-of-numbers))))
 
-;; Retrieve that directions you see from the room you are
+;; Retrieve what directions you see from the room you are
 (define (get-directions id)
   ;; Describe objects that are present in the room
   (display-objects objectdb id)
@@ -168,7 +173,6 @@
              (printf "I don't see that item in the room!\n"))
             (else
               (printf "Added ~a to your bag.\n" (first item))
-              ;; TODO: Improve function so it is not the first item always(if there are two in the room)
               ;; Adds item to inventory
               (add-object inventorydb 'bag (first item))
               ;; Removes item from the ground
@@ -203,7 +207,9 @@
   (printf "\nHELP\n
           This is the help file for Racket MUD.\n\n 
           GAME OBJECTIVE\n
-          The game objective is to activate the nether portal to escape the maze. To be able to open the portal, you must have collected every item in the maze and have them all in your bag.\n\n
+          The game objective is to activate the nether portal to escape the maze. 
+          To be able to open the portal, you must find the Interdimensional Communicator
+          in one of the maze rooms.\n\n
           VALID COMMANDS\n
           - (look | directions | examine room): Retrieve information about the current room.\n
           - (pick | get | pickup) <item-name> : Your character pick up the item correspondent to <item-name>. If no <item-name> is supplied, it picks up the first item on the rooms list.\n
@@ -252,7 +258,8 @@
       ;; Decides which action response corresponds to. One of the most important calls in the code 
       (let ((response (lookup id tokens)))
         ;; (printf "Input: ~a\nTokens: ~a\nResponse: ~a\n" input tokens response)
-        (cond 
+        (cond ((number? response)
+ -             (loop response #t))
               ;; If response meaning couldn't be found after the lookup function, shows error message
               ((eq? #f response)
                (format #t "Huh? I didn't understand that!\n")
@@ -285,7 +292,7 @@
               ;; Exit game command
               ((eq? response 'quit)
                ;; Exit the application
-               (format #t "Hasta la vista, baby\n")
+               (format #t "Hasta la vista, baby!\n")
                (exit)))))))
 
 ;; Adds the objects to the database before the game starts
@@ -295,12 +302,12 @@
 (startgame 1)
 
 ;;  DID:
-;;  Look now displays the items in the room
+;;  Add empty inventory/room message  
+;;  Solve walking bug
+;;  Add content
+
 
 ;;  TODO:
 ;;  Main menu(Play, Help, Quit)
-;;  Make help command
-;;  Add empty inventory/room message
-;;  Input error handling
 ;;  Add dungeon door
 ;;  Add procedural generation

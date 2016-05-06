@@ -1,0 +1,64 @@
+commit 228bc6d5842898d95ca56972652cf0340a14f4fb
+Author: Joao Martins <joaofbsm@hotmail.com>
+Date:   Fri May 6 12:43:44 2016 +0100
+
+    Add help, Improve functionalities
+    
+    - Adds the HELP action. When you type help in the TextField, you receive the help file on the screen. It contains the Game Objective and the Valid Commands for Racket MUD.
+    - Now when you LOOK, you also see the items that are inside the room.
+
+commit 3923d3a67a0c416e415efff6230c168f9a4319bd
+Author: Joao Martins <joaofbsm@hotmail.com>
+Date:   Fri May 6 10:15:17 2016 +0100
+
+    Optimize code, Upgrade comments, Format code
+    
+    - Removed useless code, thus optimizing it in general
+    - Upgraded some comments and added comments to the main loop
+    - Formated all the code, changing the comment style, adding comment boxes and grouping bits of code according to when it is called(This makes code debugging easier)
+
+commit ad12ef82866a5ce9db2af4fd916078728f3de264
+Author: Joao Martins <joaofbsm@hotmail.com>
+Date:   Fri May 6 07:48:08 2016 +0100
+
+    Complete comments, Solve drop error, Clean code
+    
+    - Added the rest of the comments(just 10 lines were left)
+    - Now the item drop is normally working
+    - Code is cleaner and no debug printfs are showing anymore
+
+commit 13a253ab010aca1557d010b126376806427bb9c2
+Author: Joao Martins <joaofbsm@hotmail.com>
+Date:   Fri May 6 06:38:06 2016 +0100
+
+    Add comments, Add functionality, Solve errors
+    
+    - The code is now thoroughly commented. This was done to help in the understanding and error solving for this code.
+    - New functionalities like showing the name of items in the room and item interactions were added
+    - Fixed errors such as seeing all the objects that are in the game without needing to move and function calls that were raising exceptions
+
+commit 9b9161470b55d4dabfa5758a9104bdc4e6a0b818
+Author: Joao Martins <joaofbsm@hotmail.com>
+Date:   Sat Apr 30 09:59:23 2016 +0100
+
+    Fix error, Improve main function
+    
+    - Fixed error with unquote-splicing and premade lists
+    - Added new function calls to main loop(not working properly yet)
+
+commit 6eddce0ae2e0a5425e302b11decf1f9a8be066ac
+Author: Joao Martins <joaofbsm@hotmail.com>
+Date:   Sat Apr 30 04:43:33 2016 +0100
+
+    First functional version
+    
+    - Main loop and directions
+    - Object database
+    - Inventory display module(Not working yet)
+    - Item grab and drop modules(Not working yet)
+
+commit 7d3fd0dbb9736717bae03d188ddd6a3b0a366ad5
+Author: Joao Francisco  BarretoDaSilvaMartins <21293682@eby03023u01111.student.tvu.ac.uk>
+Date:   Tue Jan 26 15:41:03 2016 +0000
+
+    Initial Commit
