@@ -16,11 +16,11 @@
 (define look '(((directions) look) ((look) look) ((examine room) look)))
 (define quit '(((exit game) quit) ((quit game) quit) ((exit) quit) ((quit) quit)))
 (define pick '(((get) pick) ((pickup) pick) ((pick) pick)))
-(define put '(((put) drop) ((drop) drop) ((place) drop) ((remove) drop)))
+(define drop '(((put) drop) ((drop) drop) ((place) drop) ((remove) drop)))
 (define inventory '(((inventory) inventory) ((bag) inventory)))
 
 ;unquote-splicing(references all the other lists)
-(define actions `(,@look ,@quit ,@pick ,@put ,@inventory))
+(define actions `(,@look ,@quit ,@pick ,@drop ,@inventory))
 (define decisiontable `((1 ((north) 2) ((north west) 3) ,@actions)
                         (2 ((south) 1) ,@actions)
                         (3 ,@actions)))
@@ -33,8 +33,6 @@
 (define (get-directions id)
   ;In list decisiontable, finds the pair that has car equals to id and assign it to record
   (let ((record (assq id decisiontable)))
-    (printf "Record: ~a\n" record)
-    (printf "Filter record: ~a\n" (filter (lambda (n) (number? (second n))) (cdr record)))
     ;record goes through a filter and if the second value of it is a number(this is a room), it is assigned to result. Also gets the length of n(rooms you can go to)
     (let* ((result (filter (lambda (n) (number? (second n))) (cdr record)))
            (n (length result)))
@@ -60,15 +58,11 @@
 (define (assv-ref assqlist id)
   (cdr (assv id assqlist)))
 
-;The usage of our previous defined function gives us a way to retrieve our location name by passing the room id
+;The usage of our previous defined function gives us a way to retrieve our location name by passing the room id. We also show the objects on the ground for this room
 (define (get-location id)
   (printf "~a\n" (car (assq-ref descriptions id)))
   (display-objects objectdb id)
   (printf "> "))
-
-;The same that happens in get-location. Retrieves the object name based on an id
-(define (get-object id)
-  (car (assq-ref objects id)))
 
 ;Retrieve the valid keywords for the game
 (define (get-keywords id)
@@ -144,29 +138,34 @@
             (output (string-join record " and ")))
       ;When output is not an empty String
       (when (not (equal? output ""))
+
         ;If user requested to see the inventory
-        ;TODO: Needs some rethinking
         (if (eq? id 'bag)
           (printf "You are carrying ~a.\n" output)
           (printf "You can see ~a.\n" output ))))))
 
-;Picking up objects
+;Remove object from the room and add to your bag
 (define (remove-object-from-room db id str)
   ;When key(id) has something stored in db, proceed
   (when (hash-has-key? db id)
     ;Assigns to record the content of the key id inside the db hash table(gets previous items assigned to a room)
     (let* ((record (hash-ref db id))
+            ;Remove the occurrence of the item(based on the sufix, which is the most probable user input e.g. dagger) from the room
             (result (remove (lambda (x) (string-suffix-ci? str x)) record))
+            ;Return the items that record have and result don't
             (item (lset-difference equal? record result)))
       (cond ((null? item)
-             (printf "I don’t see that item in the room!\n"))
+             ;If item is null(item is not in the room), reports error
+             (printf "I don't see that item in the room!\n"))
             (else
               (printf "Added ~a to your bag.\n" (first item))
-              ;TODO: Improve function so it is not the first item always
+              ;TODO: Improve function so it is not the first item always(if there are two in the room)
+              ;Adds item to inventory
               (add-object inventorydb 'bag (first item))
+              ;Removes item from the ground
               (hash-set! db id result))))))
 
-;Dropping objects
+;Remove object from your bag and add it to the room
 (define (remove-object-from-inventory db id str)
   ;When key(id) has something stored in db, proceed
   (when (hash-has-key? db 'bag)
@@ -180,14 +179,19 @@
               (add-object objectdb id (first item))
               (hash-set! db 'bag result))))))
 
+;Picking up objects
 (define (pick-item id input)
+  ;Removes the command from the input, getting only the name of the item
   (let ((item (string-join (cdr (string-split input)))))
     (remove-object-from-room objectdb id item)))
 
+;Dropping objects
 (define (put-item id input)
+  ;Removes the command from the input, getting only the name of the item
   (let ((item (string-join (cdr (string-split input)))))
     (remove-object-from-inventory inventorydb id item)))
 
+;Displays the content of your inventory
 (define (display-inventory)
   (display-objects inventorydb 'bag))
 
@@ -207,21 +211,20 @@
            (tokens (map string->symbol string-tokens)))
       ; 
       (let ((response (lookup id tokens)))
-        (printf "Tokens: ~a\n" tokens)
+        ;(printf "Input: ~a\nTokens: ~a\nResponse: ~a\n" input tokens response)
         (cond ((number? response)
                (loop response #t))
               ((eq? #f response)
                (format #t "huh? I didn't understand that!\n")
                (loop id #f))
               ((eq? response 'look)
-               (printf "Look ID: ~a\n" id)
                (get-directions id)
                (loop id #f))
               ((eq? response 'pick)
-               (pick-item id (get-object id))
+               (pick-item id input)
                (loop id #f))
-              ((eq? response 'put)
-               (put-item id (get-object id))
+              ((eq? response 'drop)
+               (put-item id input)
                (loop id #f))
               ((eq? response 'inventory)
                (display-inventory)
@@ -236,10 +239,6 @@
 ;Start game in the first room
 (startgame 1)
 
-;Problem put
-;Show ground objects
-;Items can be seen from different rooms
+; Add empty inventory message
 ; Input error handling
-; Fix function calls (Not receiving string) OK
 ; Add dungeon door
-; Not seeing items on ground OK
