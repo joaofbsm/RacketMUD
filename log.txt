@@ -1,3 +1,21 @@
+commit e7ec24296119888d2139110356789bcc557f87c5
+Author: Joao Martins <joaofbsm@hotmail.com>
+Date:   Fri May 6 20:57:27 2016 +0100
+
+    Add endgame portal
+    
+    - When interacting with the interdimensional communicator you feel something strange. A portal between dimensions suddenly opens in front of your skeptical eyes. You are finally free to leave the maze that held you for so long(or not).
+
+commit 125d864bb891ac48400307cf59ceb62bd4e7e45c
+Author: Joao Martins <joaofbsm@hotmail.com>
+Date:   Fri May 6 20:13:05 2016 +0100
+
+    Add content, Add empty db msg, Solve walking bug
+    
+    - Add new rooms, change the name of the old ones and add new items, including the special INTERDIMENSIONAL COMMUNICATOR
+    - Now when the room or the bag is empty, an special message is shown
+    - Solved the bug where the user couldn't move through rooms
+
 commit 228bc6d5842898d95ca56972652cf0340a14f4fb
 Author: Joao Martins <joaofbsm@hotmail.com>
 Date:   Fri May 6 12:43:44 2016 +0100

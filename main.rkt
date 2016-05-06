@@ -47,7 +47,7 @@
 ;; Lists using unquote-splicing to dynamically reference all the other lists
 (define actions `(,@look ,@pick ,@drop ,@inventory ,@help ,@quit))
 (define decisiontable `((1 ((north) 2) ,@actions)
-                        (2 ((south) 1) ((north east) 3) ((north west) 2) ,@actions)
+                        (2 ((south) 1) ((north east) 3) ((north west) 4) ,@actions)
                         (3 ((west) 4) ((south west) 2) ((north east) 5) ,@actions)
                         (4 ((south east) 2) ((east) 3) ,@actions)
                         (5 ((south west) 3) ,@actions)))
@@ -75,6 +75,7 @@
     (let* ((record (hash-ref db id))
             ;; Formats the output(list of items in the room)
             (output (string-join record " and ")))
+      ;; Shows items in inventory or in the ground. Adds treatment to cases where the room or the inventory are empty
       (cond
         ((and (equal? output "") (eq? id 'bag)) (printf "Your inventory is empty.\n"))
         ((and (equal? output "") (number? id)) (printf "The room is empty.\n"))
@@ -173,10 +174,16 @@
              (printf "I don't see that item in the room!\n"))
             (else
               (printf "Added ~a to your bag.\n" (first item))
-              ;; Adds item to inventory
+              ;; Adds item to inventorydb
               (add-object inventorydb 'bag (first item))
-              ;; Removes item from the ground
-              (hash-set! db id result))))))
+              ;; Checks if the item interacted with is the interdimensional communicator. If it is, the game is over
+              (if (eq? (first item) "an interdimensional communicator")
+                (begin
+                  ;; Shows message and exits game
+                  (printf "Something strange is happening...\nYOU HAVE FOUND THE WAY TO FREEDOM!\n")
+                  (exit))
+                ;; Removes item from the ground  
+                (hash-set! db id result)))))))
 
 ;; Dropping objects
 (define (drop-item id input)
@@ -259,7 +266,7 @@
       (let ((response (lookup id tokens)))
         ;; (printf "Input: ~a\nTokens: ~a\nResponse: ~a\n" input tokens response)
         (cond ((number? response)
- -             (loop response #t))
+               (loop response #t))
               ;; If response meaning couldn't be found after the lookup function, shows error message
               ((eq? #f response)
                (format #t "Huh? I didn't understand that!\n")
@@ -300,14 +307,3 @@
 
 ;; Start game in the first room
 (startgame 1)
-
-;;  DID:
-;;  Add empty inventory/room message  
-;;  Solve walking bug
-;;  Add content
-
-
-;;  TODO:
-;;  Main menu(Play, Help, Quit)
-;;  Add dungeon door
-;;  Add procedural generation
